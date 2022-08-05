@@ -1,5 +1,6 @@
 package com.in28minutes.microservices.currencyconversionservice;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
@@ -10,7 +11,10 @@ import java.util.HashMap;
 
 @RestController
 public class CurrencyConversionController {
-     @GetMapping("/currency-conversion/from/{from}/to/{to}/quantity/{quantity}")
+    @Autowired
+    CurrencyExchangeProxy currencyExchangeProxy;
+
+    @GetMapping("/currency-conversion/from/{from}/to/{to}/quantity/{quantity}")
     public CurrencyConversion getCurrencyConversion (@PathVariable String from, @PathVariable String to, @PathVariable BigDecimal quantity) {
         HashMap<String, String> uriVariables = new HashMap<>();
         uriVariables.put("from", from);
@@ -24,5 +28,20 @@ public class CurrencyConversionController {
         response.setTotalCalculatedAmount(quantity.multiply(response.getConversionMultiple()));
 
         return response;
+    }
+
+    @GetMapping("feign/currency-conversion/from/{from}/to/{to}/quantity/{quantity}")
+    public CurrencyConversion getCurrencyConversionFeign (@PathVariable String from, @PathVariable String to, @PathVariable BigDecimal quantity) {
+        var response = currencyExchangeProxy.getExchangeValue(from, to);
+
+        if (response.isEmpty()) {
+            throw new RuntimeException("Not valid");
+        }
+
+        var currencyConversion = response.get();
+        currencyConversion.setQuantity(quantity);
+        currencyConversion.setTotalCalculatedAmount(quantity.multiply(currencyConversion.getConversionMultiple()));
+
+        return currencyConversion;
     }
 }
