@@ -30,7 +30,7 @@ public class CurrencyConversionController {
         return response;
     }
 
-    @GetMapping("feign/currency-conversion/from/{from}/to/{to}/quantity/{quantity}")
+    @GetMapping("/currency-conversion-feign/from/{from}/to/{to}/quantity/{quantity}")
     public CurrencyConversion getCurrencyConversionFeign (@PathVariable String from, @PathVariable String to, @PathVariable BigDecimal quantity) {
         var response = currencyExchangeProxy.getExchangeValue(from, to);
 
